@@ -4,6 +4,8 @@ from .models import Wallet
 from .utils import generate_wallet
 from django.http import JsonResponse
 from .utils import w3  # Import Web3 instance
+from django.views.decorators.csrf import csrf_exempt
+from .utils import get_balance
 
 @api_view(["POST"])
 def create_wallet(request):
@@ -30,3 +32,33 @@ def check_blockchain_connection(request):
         })
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+def check_balance(request, address):
+    """API to check wallet balance"""
+    try:
+        balance = get_balance(address)
+        return JsonResponse(balance)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt  # Allow POST requests from frontend
+def send_transaction(request):
+    """API to send ETH"""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            from_address = data.get("from_address")
+            private_key = data.get("private_key")
+            to_address = data.get("to_address")
+            amount_eth = float(data.get("amount"))
+
+            if not all([from_address, private_key, to_address, amount_eth]):
+                return JsonResponse({"error": "Missing required fields"}, status=400)
+
+            tx_result = send_payment(from_address, private_key, to_address, amount_eth)
+            return JsonResponse(tx_result)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)
