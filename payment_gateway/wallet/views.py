@@ -9,10 +9,22 @@ from .utils import get_balance
 
 @api_view(["POST"])
 def create_wallet(request):
-    """Create a new wallet"""
+    """Create a new wallet and store its details"""
     wallet = generate_wallet()
-    Wallet.objects.create(address=wallet["address"], private_key=wallet["private_key"])
-    return Response({"address": wallet["address"], "private_key": wallet["private_key"]})
+    
+    # Store wallet details in the database
+    Wallet.objects.create(
+        address=wallet["address"],
+        private_key=wallet["private_key"],
+        seed_phrase=wallet["seed_phrase"]
+    )
+    
+    return Response({
+        "address": wallet["address"],
+        "private_key": wallet["private_key"],
+        "seed_phrase": wallet["seed_phrase"]
+    })
+
 
 @api_view(["GET"])
 def get_wallets(request):

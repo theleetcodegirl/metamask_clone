@@ -3,7 +3,7 @@ import { useState } from "react";
 import { createWallet, getWallets } from "../utils/api";
 
 export default function WalletPage() {
-    const [wallet, setWallet] = useState<{ address: string; private_key: string } | null>(null);
+    const [wallet, setWallet] = useState<{ address: string; private_key: string; seed_phrase: string } | null>(null);
     const [wallets, setWallets] = useState<{ address: string; created_at: string }[]>([]);
 
     const handleCreateWallet = async () => {
@@ -25,10 +25,14 @@ export default function WalletPage() {
             </button>
 
             {wallet && (
-                <div className="mt-4 p-4 border rounded">
-                    <h2>New Wallet</h2>
+                <div className="mt-4 p-4 border rounded bg-gray-100">
+                    <h2 className="text-lg font-semibold">New Wallet</h2>
                     <p><strong>Address:</strong> {wallet.address}</p>
                     <p><strong>Private Key:</strong> {wallet.private_key}</p>
+                    <p className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded">
+                        <strong>Seed Phrase:</strong> <span className="font-mono">{wallet.seed_phrase}</span>
+                    </p>
+                    <p className="text-sm text-red-600 mt-2">⚠️ Store this securely. If lost, recovery is impossible.</p>
                 </div>
             )}
 
