@@ -2,7 +2,7 @@ from django.db import models
 
 class Wallet(models.Model):
     address = models.CharField(max_length=42, unique=True)
-    private_key = models.TextField()
+    encrypted_private_key = models.TextField()
     seed_phrase = models.TextField()  # Store the BIP39 seed phrase
     created_at = models.DateTimeField(auto_now_add=True)
 

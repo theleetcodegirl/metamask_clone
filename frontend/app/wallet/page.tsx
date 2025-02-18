@@ -1,50 +1,76 @@
 "use client";
 import { useState } from "react";
-import { createWallet, getWallets } from "../utils/api";
+import { createWallet, login } from "../utils/api";
 
 export default function WalletPage() {
-    const [wallet, setWallet] = useState<{ address: string; private_key: string; seed_phrase: string } | null>(null);
-    const [wallets, setWallets] = useState<{ address: string; created_at: string }[]>([]);
+    const [wallet, setWallet] = useState<{ address: string; seed_phrase: string } | null>(null);
+    const [loginData, setLoginData] = useState({ address: "", password: "" });
+    const [password, setPassword] = useState("");
+    const [token, setToken] = useState("");
 
     const handleCreateWallet = async () => {
-        const newWallet = await createWallet();
+        const newWallet = await createWallet(password);
         setWallet(newWallet);
     };
 
-    const handleGetWallets = async () => {
-        const allWallets = await getWallets();
-        setWallets(allWallets);
+    const handleLogin = async () => {
+        const res = await login(loginData.address, loginData.password);
+        if (res.access_token) { 
+            setToken(res.access_token);
+        } else {
+            alert(res.error || "Login failed!");
+        }
     };
+    
 
     return (
         <div className="flex flex-col items-center p-4">
-            <h1 className="text-2xl font-bold">Decentralized Wallets</h1>
-            
-            <button onClick={handleCreateWallet} className="mt-4 p-2 bg-blue-500 text-white rounded">
-                Create Wallet
-            </button>
+            <h1 className="text-2xl font-bold">Decentralized Wallet</h1>
 
-            {wallet && (
-                <div className="mt-4 p-4 border rounded bg-gray-100">
-                    <h2 className="text-lg font-semibold">New Wallet</h2>
-                    <p><strong>Address:</strong> {wallet.address}</p>
-                    <p><strong>Private Key:</strong> {wallet.private_key}</p>
-                    <p className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded">
-                        <strong>Seed Phrase:</strong> <span className="font-mono">{wallet.seed_phrase}</span>
-                    </p>
-                    <p className="text-sm text-red-600 mt-2">⚠️ Store this securely. If lost, recovery is impossible.</p>
-                </div>
-            )}
+            <div className="mt-4">
+                <h2>Create Wallet</h2>
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="p-2 border rounded"
+                />
+                <button onClick={handleCreateWallet} className="ml-2 p-2 bg-blue-500 text-white rounded">
+                    Create
+                </button>
 
-            <button onClick={handleGetWallets} className="mt-4 p-2 bg-green-500 text-white rounded">
-                Fetch Wallets
-            </button>
+                {wallet && (
+                    <div className="mt-4 p-4 border rounded">
+                        <h3>Wallet Created</h3>
+                        <p><strong>Address:</strong> {wallet.address}</p>
+                        <p><strong>Seed Phrase:</strong> {wallet.seed_phrase}</p>
+                    </div>
+                )}
+            </div>
 
-            <ul className="mt-4">
-                {wallets.map((w) => (
-                    <li key={w.address} className="p-2 border-b">{w.address} (Created: {new Date(w.created_at).toLocaleString()})</li>
-                ))}
-            </ul>
+            <div className="mt-4">
+                <h2>Login</h2>
+                <input
+                    type="text"
+                    placeholder="Wallet Address"
+                    value={loginData.address}
+                    onChange={(e) => setLoginData({ ...loginData, address: e.target.value })}
+                    className="p-2 border rounded"
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    className="p-2 border rounded"
+                />
+                <button onClick={handleLogin} className="ml-2 p-2 bg-green-500 text-white rounded">
+                    Login
+                </button>
+
+                {token && <p className="mt-4">JWT Token: {token}</p>}
+            </div>
         </div>
     );
 }
