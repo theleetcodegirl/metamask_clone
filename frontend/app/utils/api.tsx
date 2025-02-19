@@ -38,3 +38,52 @@ export const getBalance = async (address: string) => {
         throw error;
     }
 };
+
+export const getPrivateKey = async (address: string, password: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_private_key/${address}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "password" : password }),
+        });
+        
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        
+        return response.json();
+    } catch (error) {
+        console.error("Error fetching private key:", error);
+        throw error;
+    }
+};
+
+export const sendTransaction = async (from_address: string, to_address: string, amount: number, password: string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/send_transaction/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                from_address,
+                to_address,
+                amount: amount.toString(), // Convert to string to preserve precision
+                password
+            }),
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || "Transaction failed");
+        }
+
+        return data;
+    } catch (error: any) {
+        console.error("Error sending transaction:", error);
+        throw new Error(error.message || "Failed to send transaction");
+    }
+};

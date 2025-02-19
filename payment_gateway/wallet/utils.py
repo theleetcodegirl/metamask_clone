@@ -7,6 +7,15 @@ from eth_account import Account
 from mnemonic import Mnemonic
 from cryptography.fernet import Fernet
 from django.conf import settings
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+from base64 import urlsafe_b64encode
+import logging
+from eth_utils import to_checksum_address  # Add this import
+from .models import Wallet
+
+logger = logging.getLogger(__name__)
 
 # Use Alchemy Sepolia RPC URL
 ALCHEMY_URL = "https://eth-sepolia.g.alchemy.com/v2/MWrvA5sjSewezd3GCa6W8eagPJz5TVEA"
@@ -18,20 +27,32 @@ JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRY_MINUTES = 15
 REFRESH_TOKEN_EXPIRY_DAYS = 7
 
+def derive_key(password):
+    """Derive a key from the password using PBKDF2."""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=b'some_salt',  # Use a proper salt in production
+        iterations=100000,
+        backend=default_backend()
+    )
+    return urlsafe_b64encode(kdf.derive(password.encode()))
+
 def encrypt_private_key(private_key, password):
     """Encrypt private key using a password."""
     try:
-        key = Fernet.generate_key()
+        key = derive_key(password)
         cipher = Fernet(key)
         encrypted_private_key = cipher.encrypt(private_key.encode()).decode()
-        return encrypted_private_key, key.decode()
+        return encrypted_private_key
     except Exception as e:
         return {"error": f"Error encrypting private key: {str(e)}"}
 
-def decrypt_private_key(encrypted_private_key, key):
-    """Decrypt private key using stored key."""
+def decrypt_private_key(encrypted_private_key, password):
+    """Decrypt private key using the password."""
     try:
-        cipher = Fernet(key.encode())
+        key = derive_key(password)
+        cipher = Fernet(key)
         decrypted_private_key = cipher.decrypt(encrypted_private_key.encode()).decode()
         return decrypted_private_key
     except Exception as e:
@@ -45,17 +66,17 @@ def generate_wallet(password):
         seed = mnemo.to_seed(seed_phrase)
         account = Account.from_key(seed[:32])
 
-        encrypted_private_key, key = encrypt_private_key(account.key.hex(), password)
+        encrypted_private_key = encrypt_private_key(account.key.hex(), password)
 
         return {
             "address": account.address,
             "seed_phrase": seed_phrase,
             "encrypted_private_key": encrypted_private_key,
-            "key": key
         }
     except Exception as e:
         return {"error": f"Error generating wallet: {str(e)}"}
-
+    
+    
 def generate_jwt(address):
     """Generate JWT token for authentication"""
     try:
@@ -114,26 +135,66 @@ def get_balance(address):
     except Exception as e:
         return {"error": f"Error getting balance: {str(e)}"}
 
-def send_payment(from_address, private_key, to_address, amount_eth):
-    """Sends ETH from one wallet to another"""
+
+
+def send_payment(from_address, to_address, amount_eth, password):
+    """Sends ETH from one wallet to another using the user's wallet credentials"""
     try:
+        # Get wallet and decrypt private key
+        user_wallet = Wallet.objects.get(address=from_address)
+        private_key = decrypt_private_key(user_wallet.encrypted_private_key, password)
+        
+        if isinstance(private_key, dict) and "error" in private_key:
+            return private_key
+
+        # Convert addresses
+        from_address = to_checksum_address(from_address)
+        to_address = to_checksum_address(to_address)
+        
+        # Convert amount to Wei
         amount_wei = w3.to_wei(amount_eth, 'ether')
-        nonce = w3.eth.get_transaction_count(from_address)
+        
+        # Get nonce
+        nonce = w3.eth.get_transaction_count(from_address, 'pending')
+        
+        # Use lower gas settings
+        gas_price = w3.eth.gas_price
+        gas_limit = 21000  # Standard ETH transfer
+        
+        # Calculate total cost
+        total_cost = amount_wei + (gas_limit * gas_price)
+        
+        # Check balance
+        balance_wei = w3.eth.get_balance(from_address)
+        if balance_wei < total_cost:
+            return {
+                "error": f"Insufficient funds. Need {w3.from_wei(total_cost, 'ether')} ETH, have {w3.from_wei(balance_wei, 'ether')} ETH"
+            }
 
         # Create transaction
         tx = {
             "nonce": nonce,
             "to": to_address,
             "value": amount_wei,
-            "gas": 21000,
-            "gasPrice": w3.to_wei('10', 'gwei')  # Adjust gas price as needed
+            "gas": gas_limit,
+            "gasPrice": gas_price,
+            "chainId": 11155111  # Sepolia chain ID
         }
 
-        # Sign the transaction
+        # Sign and send
         signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+        tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        
+        # Wait for receipt
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=500)
+        
+        return {
+            "tx_hash": w3.to_hex(tx_hash),
+            "status": "confirmed" if receipt.status == 1 else "failed",
+            "block_number": receipt.blockNumber,
+            "gas_used": receipt.gasUsed
+        }
 
-        # Send the transaction
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        return {"tx_hash": tx_hash.hex()}
     except Exception as e:
+        logger.error(f"Error sending payment: {str(e)}", exc_info=True)
         return {"error": f"Error sending payment: {str(e)}"}

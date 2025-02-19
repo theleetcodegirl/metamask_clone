@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -5,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Wallet
 from .utils import (
+    w3,  # <--- Add this
     generate_wallet, 
     generate_jwt, 
     decrypt_private_key, 
@@ -14,6 +19,8 @@ from .utils import (
     send_payment,
 )
 import json
+from web3 import Web3  # Ensure this import is present
+from eth_utils import to_checksum_address  # Add this import
 
 @csrf_exempt
 def create_wallet(request):
@@ -30,7 +37,8 @@ def create_wallet(request):
         Wallet.objects.create(
             address=wallet_data["address"],
             encrypted_private_key=wallet_data["encrypted_private_key"],
-            seed_phrase=wallet_data["seed_phrase"]
+            seed_phrase=wallet_data["seed_phrase"],
+            password=password  # Store the password
         )
 
         return JsonResponse({
@@ -102,7 +110,7 @@ def logout(request):
 # @permission_classes([IsAuthenticated])
 def get_wallets(request):
     """List all wallets (for demo purposes, requires authentication)"""
-    wallets = Wallet.objects.values("address", "created_at", "seed_phrase", "encrypted_private_key")
+    wallets = Wallet.objects.values("address", "created_at", "seed_phrase", "encrypted_private_key", "password")
     return Response(list(wallets))
 
 def check_blockchain_connection(request):
@@ -125,24 +133,60 @@ def check_balance(request, address):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
     
-@csrf_exempt  # Allow POST requests from frontend
-def send_transaction(request):
-    """API to send ETH"""
+
+
+@csrf_exempt
+def get_private_key(request, address):
+    """API to get the decrypted private key for a given address and password."""
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            from_address = data.get("from_address")
-            private_key = data.get("private_key")
-            to_address = data.get("to_address")
-            amount_eth = float(data.get("amount"))
+            password = data.get("password")
 
-            if not all([from_address, private_key, to_address, amount_eth]):
-                return JsonResponse({"error": "Missing required fields"}, status=400)
+            if not password:
+                return JsonResponse({"error": "Password is required"}, status=400)
 
-            tx_result = send_payment(from_address, private_key, to_address, amount_eth)
-            return JsonResponse(tx_result)
+            try:
+                wallet = Wallet.objects.get(address=address)
+                decrypted_key = decrypt_private_key(wallet.encrypted_private_key, password)
+                
+                if isinstance(decrypted_key, dict) and "error" in decrypted_key:
+                    return JsonResponse({"error": decrypted_key["error"]}, status=400)
+                
+                return JsonResponse({"private_key": decrypted_key})
+                
+            except Wallet.DoesNotExist:
+                return JsonResponse({"error": "Wallet not found"}, status=404)
+            except Exception as e:
+                return JsonResponse({"error": f"Failed to decrypt private key: {str(e)}"}, status=500)
 
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON in request body"}, status=400)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@api_view(["POST"])
+def send_transaction(request):
+    try:
+        data = json.loads(request.body)
+        to_address = data.get('to_address')
+        from_address = data.get('from_address')
+        amount_eth = float(data.get('amount'))
+        password = data.get('password')
+
+        if not all([from_address, to_address, amount_eth, password]):
+            return JsonResponse({"error": "Missing required parameters"}, status=400)
+        
+        result = send_payment(from_address, to_address, amount_eth, password)
+        
+        if "error" in result:
+            return JsonResponse(result, status=400)
+        return JsonResponse(result, status=200)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON in request body"}, status=400)
+    except Exception as e:
+        logger.error(f"Error in send_transaction view: {str(e)}", exc_info=True)
+        return JsonResponse({"error": f"Server error: {str(e)}"}, status=500)
