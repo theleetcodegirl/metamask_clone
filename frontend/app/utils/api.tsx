@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://studious-space-acorn-jj7995wr59xqhj57q-8000.app.github.dev/api";
+const API_BASE_URL = "https://animated-memory-g4r66qwxq6vq3wjrq-8000.app.github.dev/api";
 
 export const createWallet = async (password: string) => {
     const res = await fetch(`${API_BASE_URL}/create_wallet/`, {

