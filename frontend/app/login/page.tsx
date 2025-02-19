@@ -20,6 +20,7 @@ export default function LoginPage() {
         if (res.access_token) { 
             setToken(res.access_token);
             localStorage.setItem("access_token", res.access_token);
+            localStorage.setItem("wallet_address", loginData.address); // Save address to localStorage
             router.push("/wallet"); // Redirect to /wallet after successful login
         } else {
             alert(res.error || "Login failed!");
