@@ -14,6 +14,7 @@ from base64 import urlsafe_b64encode
 import logging
 from eth_utils import to_checksum_address  # Add this import
 from .models import Wallet
+import requests  # Add this import
 
 logger = logging.getLogger(__name__)
 
@@ -198,3 +199,17 @@ def send_payment(from_address, to_address, amount_eth, password):
     except Exception as e:
         logger.error(f"Error sending payment: {str(e)}", exc_info=True)
         return {"error": f"Error sending payment: {str(e)}"}
+
+def get_transaction_history(address):
+    """Get transaction history for a given wallet address from Etherscan"""
+    try:
+        url = f"{settings.ETHERSCAN_URL}?module=account&action=txlist&address={address}&startblock=0&endblock=99999999&sort=asc&apikey={settings.ETHERSCAN_API_KEY}"
+        response = requests.get(url)
+        response_data = response.json()
+        
+        if response_data["status"] == "1":
+            return response_data["result"]
+        else:
+            return {"error": response_data["message"]}
+    except Exception as e:
+        return {"error": f"Error fetching transaction history: {str(e)}"}

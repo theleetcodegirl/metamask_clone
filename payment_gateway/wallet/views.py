@@ -17,6 +17,7 @@ from .utils import (
     verify_refresh_token,
     get_balance,
     send_payment,
+    get_transaction_history,  # Add this import
 )
 import json
 from web3 import Web3  # Ensure this import is present
@@ -190,3 +191,13 @@ def send_transaction(request):
     except Exception as e:
         logger.error(f"Error in send_transaction view: {str(e)}", exc_info=True)
         return JsonResponse({"error": f"Server error: {str(e)}"}, status=500)
+    
+
+@api_view(["GET"])
+def get_transactions(request, address):
+    """API to get transaction history for a given wallet address"""
+    try:
+        transactions = get_transaction_history(address)
+        return JsonResponse(transactions, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

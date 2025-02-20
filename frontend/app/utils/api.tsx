@@ -87,3 +87,17 @@ export const sendTransaction = async (from_address: string, to_address: string, 
         throw new Error(error.message || "Failed to send transaction");
     }
 };
+
+export const getTransactionHistory = async (address:string) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_transactions/${address}/`);
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching transaction history:", error);
+        throw error;
+    }
+};

@@ -9,6 +9,7 @@ from .views import (
     logout,
     refresh_token,
     get_private_key,
+    get_transactions,
 )
 
 urlpatterns = [
@@ -21,4 +22,6 @@ urlpatterns = [
     path("login/", login, name="login"),
     path("logout/", logout, name="logout"),
     path("refresh_token/", refresh_token, name="refresh_token"),
+    path("get_transactions/<str:address>/", get_transactions, name="get_transactions"),
+
 ]
