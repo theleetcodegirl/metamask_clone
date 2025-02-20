@@ -148,10 +148,10 @@ const SwapComponent = () => {
         amountToApprove
       );
       await tx.wait();
-      alert("Approval successful!");
+      alert("Swap successful!");
     } catch (error) {
-      console.error("Approval failed:", error);
-      alert("Approval failed!");
+      console.error("swap failed:", error);
+      alert("swap failed!");
     }
   };
 
@@ -242,10 +242,15 @@ const SwapComponent = () => {
           onClick={approveToken}
           className="bg-yellow-500 text-white px-4 py-2 rounded w-full mb-2"
         >
-          Approve Token
+          Swap Token
         </button>
+          <div className="mt-4 text-green-500">
+            <p>
+              You swapped: {swappedAmount} {tokenIn} for {tokenOut}
+            </p>
+          </div>
 
-        <button
+        {/* <button
           onClick={swapTokens}
           className={`bg-green-500 text-white px-4 py-2 rounded w-full ${
             loading ? "opacity-50" : ""
@@ -253,14 +258,14 @@ const SwapComponent = () => {
           disabled={loading}
         >
           {loading ? "Swapping..." : "Swap"}
-        </button>
-        {swappedAmount && (
+        </button> */}
+        {/* {swappedAmount && (
           <div className="mt-4 text-green-500">
             <p>
               You swapped: {swappedAmount} {tokenIn} for {tokenOut}
             </p>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

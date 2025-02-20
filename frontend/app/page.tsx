@@ -17,14 +17,17 @@ export default function LandingPage() {
     }
   }, [connected, router]);
 
+  // Pre-define the grid cells array
+  const gridCells = Array.from({ length: 24 }).map((_, index) => index);
+
   return (
     <div className="w-full">
       <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-2 opacity-10 z-0 pointer-events-none">
-        {Array.from({ length: 25 }).map((_, i) => (
+        {gridCells.map((index) => (
           <div
-            key={i}
+            key={`grid-cell-${index}`}
             className="bg-gray-700 dark:bg-gray-300 rounded-lg h-full w-full"
-          ></div>
+          />
         ))}
       </div>
       {/* Hero Section - Full Page */}

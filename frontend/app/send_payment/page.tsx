@@ -64,12 +64,18 @@ export default function SendPayment() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Send ETH</h1>
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
+      <h1 className="text-3xl font-bold mb-6 text-center">Send ETH</h1>
       
+      <img 
+        src="https://source.unsplash.com/random/800x200?crypto" 
+        alt="Crypto" 
+        className="w-full h-48 object-cover rounded mb-6"
+      />
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-1">From Address</label>
+          <label className="block mb-1 font-semibold">From Address</label>
           <input
             type="text"
             value={formData.from_address}
@@ -79,7 +85,7 @@ export default function SendPayment() {
         </div>
 
         <div>
-          <label className="block mb-1">To Address</label>
+          <label className="block mb-1 font-semibold">To Address</label>
           <input
             type="text"
             value={formData.to_address}
@@ -90,7 +96,7 @@ export default function SendPayment() {
         </div>
 
         <div>
-          <label className="block mb-1">Amount (ETH)</label>
+          <label className="block mb-1 font-semibold">Amount (ETH)</label>
           <input
             type="number"
             step="0.000000000000000001" // Allow for very small amounts
@@ -103,7 +109,7 @@ export default function SendPayment() {
         </div>
 
         <div>
-          <label className="block mb-1">Password</label>
+          <label className="block mb-1 font-semibold">Password</label>
           <input
             type="password"
             value={formData.password}

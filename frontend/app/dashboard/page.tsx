@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Wallet, Send, FileText, RefreshCcw, ExternalLink } from "lucide-react";
 import { ethers } from "ethers";
+import WalletPage from "../wallet/page";
 
 // Dummy data for recent transactions
 const recentTransactions = [
@@ -87,7 +88,7 @@ export default function Dashboard() {
           <div className="grid gap-6 md:grid-cols-2 pb-4">
             <Card>
               <CardHeader>
-                <CardTitle>Wallet</CardTitle>
+                <CardTitle>MetaMask Balance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center mb-4">
@@ -97,10 +98,10 @@ export default function Dashboard() {
                     </p>
                     <p className="font-medium">{walletAddress}</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={refreshBalance}>
+                  {/* <Button variant="outline" size="sm" onClick={refreshBalance}>
                     <RefreshCcw className="h-4 w-4 mr-2" />
                     Refresh
-                  </Button>
+                  </Button> */}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Balance</p>
@@ -112,11 +113,12 @@ export default function Dashboard() {
             {/* Token Balance Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Token Balance</CardTitle>
+                <CardTitle>TokenFlow Balance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center mb-4">
-                  <div>
+                  <WalletPage />
+                  {/* <div>
                     <p className="text-sm text-muted-foreground">
                       Total Tokens
                     </p>
@@ -125,13 +127,13 @@ export default function Dashboard() {
                   <Button variant="outline" size="sm" onClick={refreshBalance}>
                     <RefreshCcw className="h-4 w-4 mr-2" />
                     Refresh
-                  </Button>
+                  </Button> */}
                 </div>
               </CardContent>
             </Card>
           </div>
           <div className="flex justify-center">
-            <Card>
+            <Card className="w-full">
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -155,7 +157,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <Tabs defaultValue="transactions">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="transactions">
@@ -234,7 +236,7 @@ export default function Dashboard() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

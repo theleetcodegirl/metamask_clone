@@ -1,37 +1,52 @@
 "use client"
 
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import ThemeToggle from "./theme";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const router = useRouter()
 
-  const handleOnClicKBuyToken = () => {
+  const handleSignup = () => {
     // Navigate to the BuyToken page
     router.push('/signup');
   };
-  
+
+  const handleLogin = () => {
+    // Navigate to the BuyToken page
+    router.push('/login');
+  };
+
+  const handleOnClick = () => {
+    if (isLoggedIn) {
+      handleLogin();
+    } else {
+      handleSignup();
+    }
+  };
+
   return (
     <nav className="shadow-md">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <Link href="/dashboard" className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">TokenFlow</Link>
-       
+        <Link href="/dashboard" className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">TokenFlow</Link>
+
         <div className="flex space-x-12">
           <Link href="/dashboard/payments" className="font-semibold hover:text-blue-700">
             Payment
           </Link>
-          <Link href="/dashboard/transaction" className="font-semibold hover:text-blue-700">
+          <Link href="/transactions" className="font-semibold hover:text-blue-700">
             History
           </Link>
-          <Link href="/dashboard/nft_Receipt" className=" font-semibold hover:text-blue-700">
+          <Link href="/dashboard/receipts" className=" font-semibold hover:text-blue-700">
             Receipt
           </Link>
-          <Link href="/dashboard/exchangeRate" className=" font-semibold hover:text-blue-700">
+          {/* <Link href="/dashboard/exchangeRate" className=" font-semibold hover:text-blue-700">
             ExchangeRate
-          </Link>
+          </Link> */}
           <Link href="/dashboard/swapTokens" className="font-semibold hover:text-blue-700">
             Swap
           </Link>
@@ -41,8 +56,15 @@ export default function Navbar() {
 
         </div>
         <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="outline" className="font-semibold" onClick={handleOnClicKBuyToken}>Signup</Button>
+          <ThemeToggle />
+          <Button
+            variant="outline"
+            className="font-semibold"
+            onClick={handleOnClick}
+          >
+            {isLoggedIn ? "Login" : "Signup"}
+          </Button>
+          {/* <Button variant="outline" className="font-semibold" onClick={handleOnClicKBuyToken}>Signup</Button> */}
         </div>
       </div>
     </nav>

@@ -25,11 +25,17 @@ const WalletPage = () => {
 
     return (
         <div>
-            <h1>Wallet Page</h1>
             {address ? (
                 <div>
-                    <p>Address: {address}</p>
-                    <p>Balance: {balance !== null ? `${balance} ETH` : "Loading..."}</p>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Connected Address </p>
+                        <p>{address}</p>
+                    </div>
+                    
+                    <div className="pt-4">
+                        <p className="text-sm text-muted-foreground">Balance </p>
+                        <p className="text-2xl font-bold">{balance !== null ? `${balance} ETH` : "Loading..."} </p>
+                    </div>
                 </div>
             ) : (
                 <p>No wallet address found in local storage.</p>

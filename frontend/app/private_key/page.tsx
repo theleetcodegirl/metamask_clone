@@ -39,9 +39,9 @@ export default function PrivateKeyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center">Get Private Key</h1>
+        <div className="min-h-screen bg-cover bg-center flex flex-col items-center justify-center p-4" style={{ backgroundImage: "url('https://source.unsplash.com/random/1600x900')" }}>
+            <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-md w-full max-w-md">
+                <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Get Private Key</h1>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -74,7 +74,7 @@ export default function PrivateKeyPage() {
 
                 {privateKey && (
                     <div className="mt-6">
-                        <h2 className="text-lg font-semibold mb-2">Your Private Key:</h2>
+                        <h2 className="text-lg font-semibold mb-2 text-gray-800">Your Private Key:</h2>
                         <div className="bg-gray-100 p-4 rounded break-all text-sm">
                             {privateKey}
                         </div>
